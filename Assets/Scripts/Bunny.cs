@@ -9,6 +9,11 @@ public class Bunny : MonoBehaviour
     public float speed = 1f;
     public float visionRange = 5f;
 
+    [Header("Agility (Flee Boost)")]
+    public float fleeSpeedMultiplier = 2f;
+    public float fleeDuration = 0.5f;
+
+      
     [Header("Bunny States")]
     public bool isAlive = true;
     public BunnyState currentState = BunnyState.Exploring;
@@ -16,9 +21,13 @@ public class Bunny : MonoBehaviour
     private Vector3 destination;
     private float h;
 
+    private float fleeTimer = 0f;
+    private float originalSpeed;
+
     private void Start()
     {
         destination = transform.position;
+        originalSpeed = speed;
     }
 
     public void Simulate(float h)
@@ -47,6 +56,7 @@ public class Bunny : MonoBehaviour
 
         Move();
         Age();
+        HandleFleeBoost();
         CheckState();
     }
 
@@ -146,6 +156,12 @@ public class Bunny : MonoBehaviour
 
     void Flee()
     {
+        if (fleeTimer <= 0)
+        {
+            speed = originalSpeed * fleeSpeedMultiplier;
+            fleeTimer = fleeDuration;
+        }
+
         // Elegir dirección contraria al depredador
         Vector3 fleeDir = (transform.position - GetNearestPredatorPosition()).normalized;
         destination = transform.position + fleeDir * visionRange;
@@ -163,6 +179,18 @@ public class Bunny : MonoBehaviour
         else
         {
             destination = transform.position + fleeDir * visionRange;
+        }
+    }
+    void HandleFleeBoost()
+    {
+        if (fleeTimer > 0)
+        {
+            fleeTimer -= h;
+
+            if (fleeTimer <= 0)
+            {
+                speed = originalSpeed;
+            }
         }
     }
 
